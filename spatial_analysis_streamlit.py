@@ -6,6 +6,8 @@ from scipy.stats import gaussian_kde
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
+from folium.plugins import HeatMap
+from streamlit_folium import folium_static
 
 st.title("Spatial Analysis Tool: Elevation & KDE Heatmap")
 
@@ -43,16 +45,11 @@ if uploaded_file is not None:
         st.success("Elevation data added!")
         st.dataframe(df.head())
 
-    st.subheader("Interactive Map")
-    if "Elevation (m)" in df.columns:
-        m = folium.Map(location=[df["Latitude"].mean(), df["Longitude"].mean()], zoom_start=11)
-        for _, row in df.iterrows():
-            folium.Marker(
-                location=[row["Latitude"], row["Longitude"]],
-                popup=f"Elevation: {row['Elevation (m)']} m"
-            ).add_to(m)
-        from streamlit_folium import folium_static
-        folium_static(m)
+    st.subheader("Interactive Heatmap Over Thailand")
+    m = folium.Map(location=[df["Latitude"].mean(), df["Longitude"].mean()], zoom_start=6)
+    heat_data = [[row["Latitude"], row["Longitude"]] for _, row in df.iterrows()]
+    HeatMap(heat_data, radius=15).add_to(m)
+    folium_static(m)
 
     st.subheader("Spatial Distribution Heatmap (KDE)")
     coords = df[["Longitude", "Latitude"]].to_numpy().T
